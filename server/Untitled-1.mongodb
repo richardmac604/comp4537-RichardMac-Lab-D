@@ -1,0 +1,15 @@
+// MongoDB Playground
+// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
+// Make sure you are connected to enable completions and to be able to run a playground.
+// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+
+// Select the database to use.
+use('cities');
+
+// Insert a few documents into the sales collection.
+db.cities.insertMany([
+  { 'name': 'Vancouver', 'description':'hot', 'temperature':25.5},
+  { 'name': 'Tokyo', 'description', :'scorching', 'temperature': 39.5},
+  { 'name': 'Paris' ,'description' :'cloudy', 'temperature': 19},
+]);
+
