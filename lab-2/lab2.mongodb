@@ -121,3 +121,9 @@ use('test')
 // db.hits.update({page: 'unicorns'},
 // 	{$inc: {hits: 1}});
 // db.hits.find();
+
+
+// db.unicorns.update({},
+// 	{$set: {vaccinated: true }},
+// 	{multi:true});
+// db.unicorns.find({vaccinated: true});
