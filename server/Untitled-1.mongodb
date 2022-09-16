@@ -12,4 +12,3 @@ db.cities.insertMany([
   { 'name': 'Tokyo', 'description', :'scorching', 'temperature': 39.5},
   { 'name': 'Paris' ,'description' :'cloudy', 'temperature': 19},
 ]);
-
