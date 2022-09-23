@@ -1,4 +1,4 @@
-exports.unicornsJSON  = [
+[
     {
       "_id": "6324fbe4998cf52fe226fb96",
       "name": "Horny",
