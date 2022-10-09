@@ -1,10 +1,25 @@
 const mongoose = require("mongoose")
 
+const possibleTypes = ["Fire", "Normal","Water", 
+"Grass", "Poison", "Flying", 
+"Bug" , "Electric", "Rock",
+"Fighting", "Psychic", "Ground",
+"Ghost", "Ice", "Dragon" ,"Dark"
+,"Fairy", "Steel" ]
 
 const pokemonSchema = new mongoose.Schema({
-    "id": Number, 
+    id: {type:Number, 
+        unique:true} ,
     "name": {
-        "english":String,
+        english:{
+        type:String,
+        required:true,
+        max:20,
+        validate:{
+            validator: (v) => v.length < 21,
+            message:"English name should be less than 20 characters"
+        }
+        },
         "japanese":String,
         "chinese":String,
         "french":String,
@@ -17,7 +32,8 @@ const pokemonSchema = new mongoose.Schema({
         "Sp. Attack":Number,
         "Sp. Defense":Number,
     },
-    "type":[String]
+    type:[{type:String,
+            enum:possibleTypes}],
     
   });
 

@@ -4,6 +4,7 @@ const https = require('https')
 const model = require("./model")
 const app = express()
 const port = 5000
+app.use(express.json())
 
 app.listen(process.env.PORT || port, async()=>{
     try{
@@ -16,14 +17,6 @@ app.listen(process.env.PORT || port, async()=>{
     }
     console.log(`Example app listening on port${port}`);
 })
-
-
-const possibleTypes = [["Fire", "Normal","Water", 
-"Grass", "Poison", "Flying", 
-"Bug" , "Electric", "Rock",
-"Fighting", "Psychic", "Ground",
-"Ghost", "Ice", "Dragon" ,"Dark"
-,"Fairy", "Steel", ]]
 
 async function run(){
 
@@ -72,45 +65,136 @@ async function run(){
 
 
 
+// - get all the pokemons after the 10th. List only Two.
+app.get('/api/v1/pokemons',(req,res) => {
+   var count = req.query.count;
+   var after = req.query.after;
 
-// app.get('/api/v1/pokemons?count=2&after=10')     // - get all the pokemons after the 10th. List only Two.
+   try{
+    model.find({})
+    .skip(after)
+    .limit(count)
+    .then((doc) => {
+      res.json(doc);
+    })
+    .catch((err) => {
+      res.json({msg:err});
+    })
+   }catch(err) {
+    res.json({msg: "That didn't work. Check queries again"});
+   }
+}) 
  
 
-// - create a new pokemon
-app.post('/api/v1/pokemon' ,(req,res) =>{
-  model.create(req.body, function (err) {
-    if (err) console.log(err);
+// // - create a new pokemon
+// app.post('/api/v1/pokemon' ,(req,res) =>{
+//   model.create(req.body, function (err,result) {
+//     if (err){
+//       res.json({ errMsg: "ValidationError: check your ...",
+//                  error: err})
+//     }else{
+//       res.json({ msg: "Added Successfully" })
+//     }
+    
+//   });
+//  })    
+ app.post('/api/v1/pokemon' ,(req,res) =>{
+  model.findOneAndUpdate({},req.body, {upsert:true, new:true},function (err,result) {
+    if (err){
+      res.json({ errMsg: "ValidationError: check your ...",
+                 error: err})
+    }else{
+      res.json({ msg: "Success (no duplcations allowed)" })
+    }
+    
   });
-  res.json(req.body)
- })      
+ })     
         
 // get a pokemon
  app.get('/api/v1/pokemon/:id',(req,res)=> {
-  console.log(req.params.id);
     model.find({id:req.params.id })
       .then(doc => {
-        console.log(doc)
-        res.json(doc)
+        if (doc.length === 0){
+          res.json({ errMsg: "Pokemon not found" })
+        }else{
+          console.log(doc)
+          res.json(doc)
+        }
+       
       })
       .catch(err => {
         console.error(err)
-        res.json({ msg: "Unable to find pokemon by ID" })
+        res.json({ errMsg: "Cast Error: pass pokemon id between 1 and 811" })
       })
  })  
  
 // get a pokemon Image URL
 app.get('/api/v1/pokemonImage/:id', (req,res) => {
- 
-      const imageUrl = "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/images/00" + req.params.id + ".png"
-
-      res.write("<img src=" + imageUrl + " ></img>")
-      res.send();
-  
+      
+      var pokeNum = "00";
+      if(req.params.id > 9){
+         pokeNum = "0"
+      }
+      if(req.params.id > 99){
+        pokeNum = ""
+     }
+      
+      const imgUrl = "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/images/"+ pokeNum + req.params.id + ".png"
+      res.json({ url: imgUrl })
+      // res.writeHead(302, {location:imgUrl});
+      // res.end();
   
 
 })     
-// app.put('/api/v1/pokemon/:id')                   // - upsert a whole pokemon document
-// app.patch('/api/v1/pokemon/:id')                 // - patch a pokemon document or a
-                                                    //   portion of the pokemon document
-// app.delete('/api/v1/pokemon/:id')                // - delete a  pokemon 
+
+//- upsert a whole pokemon document
+app.put('/api/v1/pokemon/:id',(req,res) => {
+    model.findOneAndUpdate({id:req.params.id },req.body,{upsert: true},(err, result)=>{
+      if (err) {
+        console.log(err)
+        console.log(result)
+        res.json({ errMsg:err })
+      }else{
+        console.log(result)
+        res.json({ msg: "Updated Successfully" })
+      }
+    })
+})     
+ 
+
+// - patch a pokemon document or a portion of the pokemon document
+app.patch('/api/v1/pokemon/:id', (req,res) => {
+  model.updateOne({id:req.params.id }, req.body, function (err, result) {
+    if (err) {
+      console.log(err)
+      console.log(result)
+      res.json({ errMsg: "Pokemon not found" })
+    }else{
+      console.log(result);
+      res.json({ msg: "Update Successful" })
+    }
   
+  });
+
+
+})
+
+
+app.delete('/api/v1/pokemon/:id', (req,res) => {
+
+  model.deleteOne({id:req.params.id }, function (err, result) {
+    if (err || result.deletedCount === 0) {
+    console.log(err);
+    res.json({ errMsg: "Pokemon not found" })
+    }else{
+      res.json({ msg: "Deleted Successfully" ,
+            "pokeInfo.id":req.params.id })
+    }
+   
+  });
+
+})           
+  
+app.get('*', function(req, res){
+  res.status(200).send("route doesnt exist")
+});
