@@ -86,20 +86,9 @@ app.get('/api/v1/pokemons',(req,res) => {
 }) 
  
 
-// // - create a new pokemon
-// app.post('/api/v1/pokemon' ,(req,res) =>{
-//   model.create(req.body, function (err,result) {
-//     if (err){
-//       res.json({ errMsg: "ValidationError: check your ...",
-//                  error: err})
-//     }else{
-//       res.json({ msg: "Added Successfully" })
-//     }
-    
-//   });
-//  })    
- app.post('/api/v1/pokemon' ,(req,res) =>{
-  model.findOneAndUpdate({},req.body, {upsert:true, new:true},function (err,result) {
+// - create a new pokemon
+app.post('/api/v1/pokemon' ,(req,res) =>{
+  model.create(req.body, function (err,result) {
     if (err){
       res.json({ errMsg: "ValidationError: check your ...",
                  error: err})
@@ -108,7 +97,18 @@ app.get('/api/v1/pokemons',(req,res) => {
     }
     
   });
- })     
+ })    
+//  app.post('/api/v1/pokemon' ,(req,res) =>{
+//   model.findOneAndUpdate({},req.body, {upsert:true, new:true},function (err,result) {
+//     if (err){
+//       res.json({ errMsg: "ValidationError: check your ...",
+//                  error: err})
+//     }else{
+//       res.json({ msg: "Success (no duplcations allowed)" })
+//     }
+    
+//   });
+//  })     
         
 // get a pokemon
  app.get('/api/v1/pokemon/:id',(req,res)=> {
