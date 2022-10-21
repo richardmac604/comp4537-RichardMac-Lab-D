@@ -125,7 +125,8 @@ app.get('/api/v1/getPokemonswithRegex', (req,res) => {
 
     const possibilities = pokemonJSON.filter(({ name }) => poke_regex.test(name.english))
     let poke_regex = /[searchQuery]/g 
+    let filteredJson = possibilities.filter(({ poke_regex }) => poke_regex.test(name.english))
 
-    res.send("ran out of time")
+    res.send(filteredJson)
     
 })
