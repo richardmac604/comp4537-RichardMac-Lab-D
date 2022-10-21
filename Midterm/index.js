@@ -123,9 +123,12 @@ app.delete('/api/v1/pokemon/:id', (req,res) => {
 app.get('/api/v1/getPokemonswithRegex', (req,res) => {
     var {searchQuery} = req.query;
 
+    if(searchQuery){
     const possibilities = pokemonJSON.filter(({ name }) => poke_regex.test(name.english))
     let poke_regex = /[searchQuery]/g 
     let filteredJson = possibilities.filter(({ poke_regex }) => poke_regex.test(name.english))
+    }
+   
 
     res.send(filteredJson)
     
