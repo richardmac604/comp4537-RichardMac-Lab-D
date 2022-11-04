@@ -15,6 +15,8 @@ const {
   PokemonNoSuchRouteError
 } = require("./errors.js")
 
+const { asyncWrapper } = require("./asyncWrapper.js")
+
 app.listen(process.env.PORT || port, async()=>{
     try{
         await mongoose.connect("mongodb+srv://xr1chard:1234@cluster0.0zutyxg.mongodb.net/test",
@@ -22,7 +24,7 @@ app.listen(process.env.PORT || port, async()=>{
         run();
 
     }catch(error){
-        console.log('db error');
+        throw new PokemonDBError(err)
     }
     console.log(`Example app listening on port${port}`);
 })
@@ -79,6 +81,10 @@ app.get('/api/v1/pokemons',(req,res) => {
    var count = req.query.count;
    var after = req.query.after;
 
+   if (after == NULL){
+    throw new PokemonBadRequestMissingAfter("");
+   }
+
    try{
     model.find({})
     .skip(after)
@@ -106,28 +112,21 @@ app.post('/api/v1/pokemon' ,(req,res) =>{
     }
     
   });
- })    
-//  app.post('/api/v1/pokemon' ,(req,res) =>{
-//   model.findOneAndUpdate({},req.body, {upsert:true, new:true},function (err,result) {
-//     if (err){
-//       res.json({ errMsg: "ValidationError: check your ...",
-//                  error: err})
-//     }else{
-//       res.json({ msg: "Success (no duplcations allowed)" })
-//     }
-    
-//   });
-//  })     
+ })     
         
 // get a pokemon
  app.get('/api/v1/pokemon/:id',(req,res)=> {
+
+    if(req.params.id == NULL){
+      throw new PokemonBadRequestMissingID("");
+    }
+
     model.find({id:req.params.id })
       .then(doc => {
         if (doc.length === 0){
           res.json({ errMsg: "Pokemon not found" })
         }else{
-          console.log(doc)
-          res.json(doc)
+          throw new PokemonNotFoundError("");
         }
        
       })
@@ -150,8 +149,7 @@ app.get('/api/v1/pokemonImage/:id', (req,res) => {
       
       const imgUrl = "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/images/"+ pokeNum + req.params.id + ".png"
       res.json({ url: imgUrl })
-      // res.writeHead(302, {location:imgUrl});
-      // res.end();
+
   
 
 })     
@@ -160,9 +158,7 @@ app.get('/api/v1/pokemonImage/:id', (req,res) => {
 app.put('/api/v1/pokemon/:id',(req,res) => {
     model.findOneAndUpdate({id:req.params.id },req.body,{upsert: true},(err, result)=>{
       if (err) {
-        console.log(err)
-        console.log(result)
-        res.json({ errMsg:err })
+        throw new PokemonNotFoundError("");
       }else{
         console.log(result)
         res.json({ msg: "Updated Successfully" })
@@ -175,9 +171,7 @@ app.put('/api/v1/pokemon/:id',(req,res) => {
 app.patch('/api/v1/pokemon/:id', (req,res) => {
   model.updateOne({id:req.params.id }, req.body, function (err, result) {
     if (err) {
-      console.log(err)
-      console.log(result)
-      res.json({ errMsg: "Pokemon not found" })
+      throw new PokemonNotFoundError("");
     }else{
       console.log(result);
       res.json({ msg: "Update Successful" })
@@ -193,8 +187,7 @@ app.delete('/api/v1/pokemon/:id', (req,res) => {
 
   model.deleteOne({id:req.params.id }, function (err, result) {
     if (err || result.deletedCount === 0) {
-    console.log(err);
-    res.json({ errMsg: "Pokemon not found" })
+      throw new PokemonNotFoundError("");
     }else{
       res.json({ msg: "Deleted Successfully" ,
             "pokeInfo.id":req.params.id })
@@ -205,5 +198,5 @@ app.delete('/api/v1/pokemon/:id', (req,res) => {
 })           
   
 app.get('*', function(req, res){
-  res.status(200).send("route doesnt exist")
+  throw new PokemonNoSuchRouteError("");
 });
