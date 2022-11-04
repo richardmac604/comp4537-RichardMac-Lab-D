@@ -5,6 +5,15 @@ const model = require("./model")
 const app = express()
 const port = 5000
 app.use(express.json())
+const {
+  PokemonBadRequest,
+  PokemonBadRequestMissingID,
+  PokemonBadRequestMissingAfter,
+  PokemonDbError,
+  PokemonNotFoundError,
+  PokemonDuplicateError,
+  PokemonNoSuchRouteError
+} = require("./errors.js")
 
 app.listen(process.env.PORT || port, async()=>{
     try{
