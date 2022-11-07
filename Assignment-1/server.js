@@ -24,7 +24,7 @@ app.listen(process.env.PORT || port, async()=>{
         run();
 
     }catch(error){
-        throw new PokemonDBError(err)
+        throw new PokemonDbError("")
     }
     console.log(`Example app listening on port${port}`);
 })
@@ -77,7 +77,7 @@ async function run(){
 
 
 // - get all the pokemons after the 10th. List only Two.
-app.get('/api/v1/pokemons',(req,res) => {
+app.get('/api/v1/pokemons',asyncWrapper(async(req,res) => {
    var count = req.query.count;
    var after = req.query.after;
 
@@ -86,7 +86,7 @@ app.get('/api/v1/pokemons',(req,res) => {
    }
 
    try{
-    model.find({})
+    await model.find({})
     .skip(after)
     .limit(count)
     .then((doc) => {
@@ -98,12 +98,12 @@ app.get('/api/v1/pokemons',(req,res) => {
    }catch(err) {
     res.json({msg: "That didn't work. Check queries again"});
    }
-}) 
+})) 
  
 
 // - create a new pokemon
-app.post('/api/v1/pokemon' ,(req,res) =>{
-  model.create(req.body, function (err,result) {
+app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
+  await model.create(req.body, function (err,result) {
     if (err){
       res.json({ errMsg: "ValidationError: check your ...",
                  error: err})
@@ -112,16 +112,16 @@ app.post('/api/v1/pokemon' ,(req,res) =>{
     }
     
   });
- })     
+ }))     
         
 // get a pokemon
- app.get('/api/v1/pokemon/:id',(req,res)=> {
+ app.get('/api/v1/pokemon/:id',asyncWrapper(async(req,res)=> {
 
     if(req.params.id == NULL){
       throw new PokemonBadRequestMissingID("");
     }
 
-    model.find({id:req.params.id })
+    await model.find({id:req.params.id })
       .then(doc => {
         if (doc.length === 0){
           res.json({ errMsg: "Pokemon not found" })
@@ -134,7 +134,7 @@ app.post('/api/v1/pokemon' ,(req,res) =>{
         console.error(err)
         res.json({ errMsg: "Cast Error: pass pokemon id between 1 and 811" })
       })
- })  
+ }))  
  
 // get a pokemon Image URL
 app.get('/api/v1/pokemonImage/:id', (req,res) => {
@@ -155,8 +155,8 @@ app.get('/api/v1/pokemonImage/:id', (req,res) => {
 })     
 
 //- upsert a whole pokemon document
-app.put('/api/v1/pokemon/:id',(req,res) => {
-    model.findOneAndUpdate({id:req.params.id },req.body,{upsert: true},(err, result)=>{
+app.put('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
+    await model.findOneAndUpdate({id:req.params.id },req.body,{upsert: true},(err, result)=>{
       if (err) {
         throw new PokemonNotFoundError("");
       }else{
@@ -164,12 +164,12 @@ app.put('/api/v1/pokemon/:id',(req,res) => {
         res.json({ msg: "Updated Successfully" })
       }
     })
-})     
+}))     
  
 
 // - patch a pokemon document or a portion of the pokemon document
-app.patch('/api/v1/pokemon/:id', (req,res) => {
-  model.updateOne({id:req.params.id }, req.body, function (err, result) {
+app.patch('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
+  await model.updateOne({id:req.params.id }, req.body, function (err, result) {
     if (err) {
       throw new PokemonNotFoundError("");
     }else{
@@ -180,12 +180,12 @@ app.patch('/api/v1/pokemon/:id', (req,res) => {
   });
 
 
-})
+}))
 
 
-app.delete('/api/v1/pokemon/:id', (req,res) => {
+app.delete('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
 
-  model.deleteOne({id:req.params.id }, function (err, result) {
+  await model.deleteOne({id:req.params.id }, function (err, result) {
     if (err || result.deletedCount === 0) {
       throw new PokemonNotFoundError("");
     }else{
@@ -195,7 +195,7 @@ app.delete('/api/v1/pokemon/:id', (req,res) => {
    
   });
 
-})           
+}))           
   
 app.get('*', function(req, res){
   throw new PokemonNoSuchRouteError("");
