@@ -121,15 +121,11 @@ const auth = (req, res, next) => {
 }
 
 
-app.use(auth)
+app.use(auth);
 // - get all the pokemons after the 10th. List only Two.
 app.get('/api/v1/pokemons',asyncWrapper(async(req,res) => {
    var count = req.query.count;
    var after = req.query.after;
-
-   if (after == NULL){
-    throw new PokemonBadRequestMissingAfter("");
-   }
 
    try{
     await model.find({})
@@ -163,7 +159,7 @@ app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
 // get a pokemon
  app.get('/api/v1/pokemon/:id',asyncWrapper(async(req,res)=> {
 
-    if(req.params.id == NULL){
+    if(!req.params.id){
       throw new PokemonBadRequestMissingID("");
     }
 
