@@ -1,29 +1,80 @@
 const express = require("express")
-const { handleErr } = require("./errorHandler.js")
+const mongoose = require("mongoose")
+const https = require('https')
+const model = require("./model")
 const { asyncWrapper } = require("./asyncWrapper.js")
-const dotenv = require("dotenv")
-dotenv.config();
 const userModel = require("./userModel.js")
-const { connectDB } = require("./connectDB.js")
+const {
+  PokemonBadRequest,
+  PokemonBadRequestMissingID,
+  PokemonBadRequestMissingAfter,
+  PokemonDbError,
+  PokemonNotFoundError,
+  PokemonDuplicateError,
+  PokemonNoSuchRouteError
+} = require("./errors.js")
+require("dotenv").config();
 
 
 const app = express()
-
-const start = asyncWrapper(async () => {
-  await connectDB();
-
-
-  app.listen(process.env.authServerPORT, (err) => {
-    if (err)
-      throw new PokemonDbError(err)
-    else
-      console.log(`Phew! Server is running on port: ${process.env.authServerPORT}`);
-  })
-})
-start()
-
 app.use(express.json())
+app.listen(process.env.authServerPORT || port, async()=>{
+  try{
+      await mongoose.connect(process.env.DB_STRING,
+      {useNewUrlParser: true, useUnifiedTopology: true});
+      run();
 
+  }catch(error){
+      throw new PokemonDbError("")
+  }
+  console.log(`Example app listening on port${process.env.authServerPORT}`);
+})
+
+async function run(){
+
+mongoose.connection.collections['pokemons'].drop( function(err) {
+  console.log('collection dropped');
+});
+
+https.get('https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json' , (res) => {
+  let data = '';
+  var pokemonArray = [];
+
+  res.on('data', (chunk) =>{
+      data += chunk;
+  });
+  
+  res.on('end', (chunk) =>{
+      pokemonArray = JSON.parse(data);
+      model.insertMany(pokemonArray);
+      
+  });
+}).on('error', (error) => {
+  console.log(error);
+})
+
+
+
+https.get('https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/types.json' , (res) => {
+  let data = '';
+  var types = [];
+
+  res.on('data', (chunk) =>{
+      data += chunk;
+  });
+  
+  res.on('end', (chunk) =>{
+      types = JSON.parse(data);
+      
+  });
+}).on('error', (error) => {
+  console.log(error);
+})
+
+}
+
+
+//----------------------------------------// 
 
 const bcrypt = require("bcrypt")
 app.post('/register', asyncWrapper(async (req, res) => {
@@ -51,15 +102,16 @@ app.post('/login', asyncWrapper(async (req, res) => {
 
   // Create and assign a token
   const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
-
   res.header('auth-token', token)
-
   res.send(user)
+}))
+
+
+app.post('/logout', asyncWrapper(async(req,res) =>{
+   res.status(202).clearCookie('auth-token').send('cookie cleared')
 }))
 
 
 
 
 
-
-app.use(handleErr)
