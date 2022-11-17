@@ -2,8 +2,10 @@ const express = require("express")
 const mongoose = require("mongoose")
 const https = require('https')
 const model = require("./model")
+const userModel = require("./userModel.js")
 const app = express()
-const port = 5000
+var cookieParser = require('cookie-parser')
+app.use(cookieParser());
 app.use(express.json())
 const {
   PokemonBadRequest,
@@ -12,14 +14,15 @@ const {
   PokemonDbError,
   PokemonNotFoundError,
   PokemonDuplicateError,
-  PokemonNoSuchRouteError
+  PokemonNoSuchRouteError,
+  PrivilegeError
 } = require("./errors.js")
 
 require("dotenv").config();
 const { asyncWrapper } = require("./asyncWrapper.js")
-//const userModel = require("./userModel.js")
 
-app.listen(process.env.pokeServerPORT || port, async()=>{
+
+app.listen(process.env.pokeServerPORT, async()=>{
     try{
         await mongoose.connect(process.env.DB_STRING,
         {useNewUrlParser: true, useUnifiedTopology: true});
@@ -28,7 +31,7 @@ app.listen(process.env.pokeServerPORT || port, async()=>{
     }catch(error){
         throw new PokemonDbError("")
     }
-    console.log(`Example app listening on port${process.env.pokeServerPORT}`);
+    console.log(`Example app listening on port ${process.env.pokeServerPORT}`);
 })
 
 async function run(){
@@ -77,7 +80,15 @@ async function run(){
 const jwt = require("jsonwebtoken")
 
 const auth = (req, res, next) => {
-  const token = req.header('auth-token')
+  
+  const{appid} = req.query;
+  
+  const token = req.cookies['auth-token']
+
+  if(appid != token){
+    throw new PokemonBadRequest("Access denied")
+  }
+
   if (!token) {
     throw new PokemonBadRequest("Access denied")
   }
@@ -114,6 +125,14 @@ app.get('/api/v1/pokemons',asyncWrapper(async(req,res) => {
 
 // - create a new pokemon
 app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
+  const token = req.cookies["auth-token"];
+  
+  const user = await userModel.findOne({jwt_token:token})
+
+  if(!user.admin){
+    throw new PrivilegeError("user is not an admin");
+  }
+
   await model.create(req.body, function (err,result) {
     if (err){
       res.json({ errMsg: "ValidationError: check your ...",
@@ -125,30 +144,37 @@ app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
   });
  }))     
         
-// get a pokemon
- app.get('/api/v1/pokemon/:id',asyncWrapper(async(req,res)=> {
 
-    if(!req.params.id){
-      throw new PokemonBadRequestMissingID("");
-    }
+ app.get('/api/v1/pokemon/:id', asyncWrapper(async (req, res) => {
 
-    await model.find({id:req.params.id })
-      .then(doc => {
-        if (doc.length === 0){
-          res.json({ errMsg: "Pokemon not found" })
-        }else{
-          throw new PokemonNotFoundError("");
-        }
-       
-      })
-      .catch(err => {
-        console.error(err)
-        res.json({ errMsg: "Cast Error: pass pokemon id between 1 and 811" })
-      })
- }))  
+    //   if(!req.params.id){
+    //   throw new PokemonBadRequestMissingID("");
+    // }
+
+  const user = await userModel.find({"jwt_token":req.cookies['auth-token']})
+  if(!user.admin){
+    throw new PrivilegeError("user is not an admin");
+  }
+
+  const { id } = req.params
+  const docs = await model.find({ "id": id })
+  if (docs.length != 0) 
+  res.json(docs)
+  else 
+  res.json({ errMsg: "Pokemon not found" })
+  
+}))
  
 // get a pokemon Image URL
-app.get('/api/v1/pokemonImage/:id', (req,res) => {
+app.get('/api/v1/pokemonImage/:id', async(req,res) => {
+
+  const token = req.cookies["auth-token"];
+  
+  const user = await userModel.findOne({jwt_token:token})
+
+  if(!user.admin){
+    throw new PrivilegeError("user is not an admin");
+  }
       
       var pokeNum = "00";
       if(req.params.id > 9){
@@ -180,6 +206,14 @@ app.put('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
 
 // - patch a pokemon document or a portion of the pokemon document
 app.patch('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
+
+  const token = req.cookies["auth-token"];
+  
+  const user = await userModel.findOne({jwt_token:token})
+
+  if(!user.admin){
+    throw new PrivilegeError("user is not an admin");
+  }
   await model.updateOne({id:req.params.id }, req.body, function (err, result) {
     if (err) {
       throw new PokemonNotFoundError("");
@@ -195,6 +229,14 @@ app.patch('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
 
 
 app.delete('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
+
+  const token = req.cookies["auth-token"];
+  
+  const user = await userModel.findOne({jwt_token:token})
+
+  if(!user.admin){
+    throw new PrivilegeError("user is not an admin");
+  }
 
   await model.deleteOne({id:req.params.id }, function (err, result) {
     if (err || result.deletedCount === 0) {

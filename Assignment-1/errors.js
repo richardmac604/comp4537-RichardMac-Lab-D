@@ -60,6 +60,15 @@ class PokemonBadRequest extends Error {
       this.pokeErrCode = 400;
     }
   }
+
+  class PrivilegeError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'PrivilegeError';
+      this.message = "Error - Privileges not meeted";
+      this.pokeErrCode = 400;
+    }
+  }
   
   module.exports = {
     PokemonBadRequest,
@@ -68,5 +77,6 @@ class PokemonBadRequest extends Error {
     PokemonDbError,
     PokemonNotFoundError,
     PokemonDuplicateError,
-    PokemonNoSuchRouteError
+    PokemonNoSuchRouteError,
+    PrivilegeError,
   };
