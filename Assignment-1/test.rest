@@ -8,9 +8,6 @@ Content-Type: application/json
   "admin": true
 }
 
-
-
-
 ###
 POST http://localhost:5000/login
 Content-Type: application/json
@@ -28,26 +25,16 @@ POST http://localhost:5000/logout
 
 ###
 
-
-GET http://localhost:6001/api/v1/pokemon/9
+GET http://localhost:6001/api/v1/pokemon/2?appid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjY4NjYwNjMzfQ.24ZthvEuD89aGqj6jQdoGEmEHgGjMJwTsyG7nWX6cTU
 
 ###
-GET http://localhost:6001/api/v1/pokemonImage/1?appid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjY4NjU1Njk2fQ.eMSL8i3nLQXsbOIBNepQ1OR4EMH1qjHPM8fo5vF9veo
-
+GET http://localhost:6001/api/v1/pokemonImage/1?appid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjY4NjYwNjMzfQ.24ZthvEuD89aGqj6jQdoGEmEHgGjMJwTsyG7nWX6cTU
 ###
 GET http://localhost:6001/api/v1/pokemonImage/1
 
+
+
 ###
-POST http://localhost:5000/register
-Content-Type: application/json
-
-{
-  "username": "user",
-  "password": "user",
-  "email": "user@test.ca",
-  "admin": false
-}
-
 POST http://localhost:5000/login
 Content-Type: application/json
 

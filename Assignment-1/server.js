@@ -130,7 +130,7 @@ app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
   const user = await userModel.findOne({jwt_token:token})
 
   if(!user.admin){
-    throw new PrivilegeError("user is not an admin");
+    throw new PokemonBadRequest("Access denied")
   }
 
   await model.create(req.body, function (err,result) {
@@ -146,15 +146,6 @@ app.post('/api/v1/pokemon' ,asyncWrapper(async(req,res) =>{
         
 
  app.get('/api/v1/pokemon/:id', asyncWrapper(async (req, res) => {
-
-    //   if(!req.params.id){
-    //   throw new PokemonBadRequestMissingID("");
-    // }
-
-  const user = await userModel.find({"jwt_token":req.cookies['auth-token']})
-  if(!user.admin){
-    throw new PrivilegeError("user is not an admin");
-  }
 
   const { id } = req.params
   const docs = await model.find({ "id": id })
@@ -173,7 +164,7 @@ app.get('/api/v1/pokemonImage/:id', async(req,res) => {
   const user = await userModel.findOne({jwt_token:token})
 
   if(!user.admin){
-    throw new PrivilegeError("user is not an admin");
+    throw new PokemonBadRequest("Access denied")
   }
       
       var pokeNum = "00";
@@ -195,7 +186,7 @@ app.get('/api/v1/pokemonImage/:id', async(req,res) => {
 app.put('/api/v1/pokemon/:id', asyncWrapper(async(req,res) => {
     await model.findOneAndUpdate({id:req.params.id },req.body,{upsert: true},(err, result)=>{
       if (err) {
-        throw new PokemonNotFoundError("");
+        throw new PokemonBadRequest("Access denied")
       }else{
         console.log(result)
         res.json({ msg: "Updated Successfully" })
