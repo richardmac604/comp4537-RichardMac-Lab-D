@@ -10,6 +10,9 @@ const writeFileAsync = util.promisify(writeFile)
 const readFileAsync = util.promisify(readFile)
 var pokemonJSON = []
 
+
+
+//app listen
 app.listen(process.env.PORT || port, async()=>{
     try{
         pokemonJSON = await readFileAsync('./pokedex.json', 'utf-8')
