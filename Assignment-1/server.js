@@ -107,6 +107,22 @@ async function run(){
 //   res.send(user)
 // }))
 
+
+
+
+app.get('/users',(req,res) => { 
+  try{
+    setTimeout(() => {
+      throw new Error('BROKEN')
+      res.send("hello world")
+    }, 1000)
+  }catch(error){
+    res.send('error');
+  }
+ 
+})
+
+
 const auth = (req, res, next) => {
   const token = req.header('auth-token')
   if (!token) {
